@@ -48,30 +48,3 @@ def handler(event, context):
             # send datadog API metric data with timestamp
             resp = dd_api.Metric.send(metric=metric_name, type='count', points=data , tags=["environment:dev"])
             print(resp)
-
-    # handle the upload from local /tmp folder to S3 bucket
-    # print("Uploading gzipped CSV to S3 bucket () ...")
-    # s3 = boto3.client("s3")
-    # s3.upload_file('/tmp/'+file_name, target_bucket_name, file_name)
-
-
-    # try to read a message from SQS queue
-    # print("Trying to receive from SQS...")
-    # sqs = boto3.client('sqs')
-    # resp_url = sqs.get_queue_url(QueueName='cisco-prague-queue', QueueOwnerAWSAccountId='546454927816')
-    # rcv_msg = sqs.receive_message(
-    #     QueueUrl=resp_url["QueueUrl"],
-    #     MaxNumberOfMessages=1,
-    #     MessageAttributeNames=['All'],
-    #     VisibilityTimeout=0,
-    #     WaitTimeSeconds=0
-    # )
-    # message = rcv_msg['Messages'][0]
-    # receipt_handle = message['ReceiptHandle']
-
-    # # Delete received message from queue
-    # sqs.delete_message(
-    #     QueueUrl=resp_url["QueueUrl"],
-    #     ReceiptHandle=receipt_handle
-    # )
-    # print('Received and deleted message: %s' % message)

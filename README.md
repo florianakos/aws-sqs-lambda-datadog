@@ -1,12 +1,20 @@
-# DataDog - AWS integration projec
+# DataDog - AWS integration project
 
-This is a small PoC project that integrates AWS Lambda with Datadog. The basic idea is that some service or job running in the cloud will save a json file to a certain S3 bucket, which contains statistics about the job itself. This file should be parsed and the relevant metrics forwarded to DataDog to display in graphs (and possibly alert on anomalies).
+This is a small PoC project that integrates AWS Lambda with Datadog. The basic idea is that some service or job running in the cloud will save a JSON file to a certain S3 bucket, which contains statistics about the job itself. This file should be parsed and the relevant metrics forwarded to DataDog to display in graphs (and possibly alert on anomalies).
 
 This project has two AWS lambda functions working together: one generates and stores fake statistics to the chosen bucket, the other picks up and submits the contained metrics to DataDog via its API.
 
 ## Architecture overview
 
 ![architecture overview](aws-ddg-project.png "Architecture")
+
+Brief description of each step in the above figure:
+
+* CW scheduled function to generate random metric data, and store it as JSON file in S3 bucket.
+* Bucket notification set up to forward message to SQS queue about newly created JSON file.
+* Lambda function is triggered on new message in the SQS queue.
+* Lambda function fetches the referenced file from S3 bucket.
+* JSON file parsed and metrics uploaded to DataDog API.
 
 ## Setup procedure
 
