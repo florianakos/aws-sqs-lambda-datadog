@@ -6,7 +6,7 @@ This project has two AWS lambda functions working together: one generates and st
 
 ## Architecture overview
 
-![architecture overview](aws-ddg-project.png "Architecture")
+![architecture overview](img/aws-ddg-project.png "Architecture")
 
 Brief description of each step in the above figure:
 
@@ -73,4 +73,4 @@ The file being generated and uploaded to S3 contains simple metrics which are up
 
 The resulting dashboard can be set up to visualize the flow of this metric over time as such:
 
-![datadog dashboard overview](ddg.png "Dasboard")
+![datadog dashboard overview](img/ddg.png "Dasboard")
