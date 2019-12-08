@@ -6,7 +6,7 @@ This project has two AWS lambda functions working together: one generates and st
 
 ## Architecture overview
 
-
+![architecture overview](aws-ddg-project.png "Architecture")
 
 ## Setup procedure
 
@@ -50,3 +50,19 @@ terraform destroy -var 'ddg_api_key=X...X' -var 'ddg_app_key=X...X'
 ```
 
 For some reason the destroy expects the same inputs as the apply command did, although the resources for which the inputs were needed are being destroyed... Never mind.
+
+## DataDog
+
+The file being generated and uploaded to S3 contains simple metrics which are uploaded to DataDog. Sample file includes JSON such as:
+
+```json
+{
+  "timestamp" :      1575839011,
+  "sample.stats" :   1231,
+  "processed.data" : 321
+}
+```
+
+The resulting dashboard can be set up to visualize the flow of this metric over time as such:
+
+![datadog dashboard overview](ddg.png "Dasboard")
