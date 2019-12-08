@@ -3,46 +3,57 @@ import csv
 import gzip
 import boto3
 import requests
+import os
+import time
+from random import randint
+
+from datadog import initialize as ddg_init
+from datadog import api as dd_api
 
 def handler(event, context):
-    # verify that URL is passed correctly and create file_name variable based on it
-    if 'org_name' not in event.keys():
-      print("Missing 'org_name' from request body (JSON)!")
-      return
-    file_name = event["org_name"]+'_github_repos.csv.gz'
+    # print(json.dumps(event, indent=4, sort_keys=True))
+    sqs_msg_body = json.loads(event["Records"][0]["body"])
 
-    # verify that target bucket name is passed correctly and create local variable
-    if 'target_bucket' not in event.keys():
-      print("Missing 'target_bucket' from request body (JSON)!")
-      return
-    target_bucket_name = event["target_bucket"]
-
-    # send Github API request
-    print("URL validated! Selected organization: " + event["org_name"])
-    print("Sending Github API request... ")
-    resp = requests.get("https://api.github.com/orgs/" + event["org_name"] + "/repos?type=all")
-    data = resp.json()
-    if resp.status_code != 200:
-        print("Organization not found")
+    # test if the received message is the standard test event which comes when new infra is set up
+    if "Event" in sqs_msg_body.keys() and sqs_msg_body["Event"] == "s3:TestEvent":
+        print("Bucket test event")
         return
 
-    # Store response in Gzipped CSV file
-    print("Storing organization repos in gzipped CSV (in local /tmp folder) ... ")
-    with gzip.open('/tmp/'+file_name, 'wb') as gzipf:
-            gzipf.write(str.encode("id,description,html_url\n"))
-            for d in data:
-                if d["description"] == None:
-                    gzipf.write(str.encode(str(d["id"])+","+"NONE"+","+d["html_url"]+"\n"))
-                else:
-                    gzipf.write(str.encode(
-                                        str(d["id"])+","
-                                        +d["description"].translate({ord(','): None, ord(';'): None})+","
-                                        +d["html_url"]+"\n"))
+    # get the filename from the message body
+    s3_file_name = sqs_msg_body["Records"][0]["s3"]["object"]["key"]
+
+    # fetch the file from S3 that was just uploaded
+    s3_client  = boto3.client('s3')
+    s3_file = s3_client.get_object(Bucket = 'gm-monitoring', Key=s3_file_name)
+    jsonData = json.loads(s3_file["Body"].read().decode('utf-8'))
+
+    # print(jsonData)
+    # datadog initialization options
+    ddg_options = { 'api_key': os.environ["DDG_API_KEY"],
+                    'app_key': os.environ["DDG_APP_KEY"],
+                    'api_host': 'https://api.datadoghq.eu'}
+    # init the local datadog agent
+    ddg_init(**ddg_options)
+
+    for metric_name in jsonData:
+        # submit a metric for each field other than the timestamp
+        if metric_name != 'timestamp':
+            # add some random noise just for testing
+            noise = randint(0, 100)
+            # prepare data to be submitted for current metric
+            data = (int(time.time()), jsonData[metric_name] + noise)
+            # print log messages
+            print("  sending to DataDog: " + metric_name + ": " + str(jsonData[metric_name] + noise))
+            # print(os.environ["DDG_API_KEY"])
+            # print(os.environ["DDG_APP_KEY"])
+            # send datadog API metric data with timestamp
+            resp = dd_api.Metric.send(metric=metric_name, type='count', points=data , tags=["environment:dev"])
+            print(resp)
 
     # handle the upload from local /tmp folder to S3 bucket
-    print("Uploading gzipped CSV to S3 bucket () ...")
-    s3 = boto3.client("s3")
-    s3.upload_file('/tmp/'+file_name, target_bucket_name, file_name)
+    # print("Uploading gzipped CSV to S3 bucket () ...")
+    # s3 = boto3.client("s3")
+    # s3.upload_file('/tmp/'+file_name, target_bucket_name, file_name)
 
 
     # try to read a message from SQS queue

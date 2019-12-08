@@ -3,6 +3,14 @@ provider "aws" {
   profile = "personal-aws"
 }
 
+variable "ddg_api_key" {
+  type = string
+}
+
+variable "ddg_app_key" {
+  type = string
+}
+
 resource "aws_iam_role" "ddg_aws_project_role" {
   name               = "DataDogAWSProjectRole"
   description        = "Role that allowed to be assumed by AWS Lambda, which will be taking all actions."
@@ -62,6 +70,7 @@ data "aws_iam_policy_document" "sqs_lambda_access" {
       "sqs:DeleteMessage",
       "sqs:GetQueueUrl",
       "sqs:ReceiveMessage",
+      "sqs:GetQueueAttributes",
     ]
   }
 }
@@ -83,6 +92,41 @@ resource "aws_lambda_function" "lambda_function" {
   filename         = "ddg_lambda.zip"
   function_name    = "ddg_aws_func"
   source_code_hash = base64sha256(filebase64("ddg_lambda.zip"))
+  environment {
+    variables = {
+      DDG_API_KEY = var.ddg_api_key
+      DDG_APP_KEY = var.ddg_app_key
+    }
+  }
+}
+
+resource "aws_lambda_function" "lambda_mock_datasource" {
+  role             = aws_iam_role.ddg_aws_project_role.arn
+  handler          = "ddg_mock_datasource.handler"
+  runtime          = "python3.6"
+  filename         = "ddg_mock_datasource.zip"
+  function_name    = "ddg_mock_datasource"
+  source_code_hash = base64sha256(filebase64("ddg_mock_datasource.zip"))
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch_events_call" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda_mock_datasource.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.mock_data_generate_schedule.arn
+}
+
+resource "aws_cloudwatch_event_rule" "mock_data_generate_schedule" {
+  name                = "mock_data_generate_schedule"
+  description         = "Periodic call to AWS Lambda function"
+  schedule_expression = "cron(0/1 * * * ? *)"
+}
+
+resource "aws_cloudwatch_event_target" "lambda_target_details" {
+  arn       = aws_lambda_function.lambda_mock_datasource.arn
+  rule      = aws_cloudwatch_event_rule.mock_data_generate_schedule.name
+  target_id = "AWSLambdaFuncMockDataSource"
 }
 
 resource "aws_lambda_permission" "allow_sqs_invoke_lambda" {
@@ -126,6 +170,12 @@ resource "aws_sqs_queue_policy" "sqs_policy" {
   ]
 }
 POLICY
+}
+
+resource "aws_lambda_event_source_mapping" "sqs_lambda_trigger" {
+  event_source_arn = aws_sqs_queue.message_queue.arn
+  function_name    = aws_lambda_function.lambda_function.function_name
+  batch_size       = 1
 }
 
 resource "aws_s3_bucket" "ddg_aws_bucket" {
