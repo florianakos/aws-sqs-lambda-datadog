@@ -10,11 +10,11 @@ This project has two AWS lambda functions working together: one generates and st
 
 Brief description of each step in the above figure:
 
-* CW scheduled function to generate random metric data, and store it as JSON file in S3 bucket.
-* Bucket notification set up to forward message to SQS queue about newly created JSON file.
-* Lambda function is triggered on new message in the SQS queue.
-* Lambda function fetches the referenced file from S3 bucket.
-* JSON file parsed and metrics uploaded to DataDog API.
+* 1 - CW scheduled function to generate random metric data, and store it as JSON file in S3 bucket.
+* 2 - Bucket notification set up to forward message to SQS queue about newly created JSON file.
+* 3 - Lambda function is triggered on new message in the SQS queue.
+* 4 - Lambda function fetches the referenced file from S3 bucket.
+* 5 - JSON file parsed and metrics uploaded to DataDog API.
 
 ## Setup procedure
 
