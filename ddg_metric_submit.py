@@ -43,8 +43,6 @@ def handler(event, context):
             data = (int(time.time()), jsonData[metric_name] + noise)
             # print log messages
             print("  sending to DataDog: " + metric_name + ": " + str(jsonData[metric_name] + noise))
-            # print(os.environ["DDG_API_KEY"])
-            # print(os.environ["DDG_APP_KEY"])
             # send datadog API metric data with timestamp
             resp = dd_api.Metric.send(metric=metric_name, type='count', points=data , tags=["environment:dev"])
             print(resp)
