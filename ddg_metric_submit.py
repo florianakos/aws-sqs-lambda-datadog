@@ -2,7 +2,6 @@ import json
 import csv
 import gzip
 import boto3
-import requests
 import os
 import time
 from random import randint

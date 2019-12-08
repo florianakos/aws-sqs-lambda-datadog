@@ -87,11 +87,11 @@ resource "aws_iam_role_policy_attachment" "sqs_lambda_access" {
 
 resource "aws_lambda_function" "lambda_function" {
   role             = aws_iam_role.ddg_aws_project_role.arn
-  handler          = "ddg_lambda.handler"
+  handler          = "ddg_metric_submit.handler"
   runtime          = "python3.6"
-  filename         = "ddg_lambda.zip"
+  filename         = "ddg_metric_submit.zip"
   function_name    = "ddg_aws_func"
-  source_code_hash = base64sha256(filebase64("ddg_lambda.zip"))
+  source_code_hash = base64sha256(filebase64("ddg_metric_submit.zip"))
   environment {
     variables = {
       DDG_API_KEY = var.ddg_api_key

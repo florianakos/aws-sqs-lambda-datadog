@@ -2,4 +2,4 @@
 terraform.tfstate
 terraform.tfstate.backup
 package/*
-.zip
+*.zip
