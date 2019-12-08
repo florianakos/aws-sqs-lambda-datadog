@@ -4,7 +4,11 @@ This is a small PoC project that integrates AWS Lambda with Datadog. The basic i
 
 This project has two AWS lambda functions working together: one generates and stores fake statistics to the chosen bucket, the other picks up and submits the contained metrics to DataDog via its API.
 
-## Deploy
+## Architecture overview
+
+
+
+## Setup procedure
 
 The project is set up to use Terraform for deploying to AWS. For this reason one needs to set up the proper credentials in `~/.aws/credentials` to be able to execute the `terraform apply`.
 
@@ -23,3 +27,26 @@ zip -g ddg_metric_submit.zip ddg_metric_submit.py
 # For the Mock Data source generator
 zip ddg_mock_datasource.zip ddg_mock_datasource.py
 ```
+
+A simple bash script containing the same steps can be found in the repe as well: `zipper.sh`.
+
+### Terraform deployment
+
+In order to deploy the project to AWS, execute the following in the root directory of the repo:
+
+```bash
+terraform init
+terraform apply -var 'ddg_api_key=X...X' -var 'ddg_app_key=X...X'
+```
+
+The two CLI arguments are necessary inputs for `main.tf`. They are needed to set API/APP keys for DataDog as ENVIRONMENT variables for the metric_submit AWS Lambda function. This way there is no need to hardcode any API key into the source-code itself (which would be dangerous anyway on a public repository).
+
+### Terraform un-deploy
+
+Execute the below command:
+
+```bash
+terraform destroy -var 'ddg_api_key=X...X' -var 'ddg_app_key=X...X'
+```
+
+For some reason the destroy expects the same inputs as the apply command did, although the resources for which the inputs were needed are being destroyed... Never mind.
