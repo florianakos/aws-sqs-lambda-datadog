@@ -3,13 +3,13 @@ provider "aws" {
   profile = "personal-aws"
 }
 
-variable "ddg_api_key" {
-  type = string
-}
-
-variable "ddg_app_key" {
-  type = string
-}
+# variable "ddg_api_key" {
+#   type = string
+# }
+#
+# variable "ddg_app_key" {
+#   type = string
+# }
 
 resource "aws_iam_role" "ddg_aws_project_role" {
   name               = "DataDogAWSProjectRole"
@@ -94,8 +94,8 @@ resource "aws_lambda_function" "lambda_function" {
   source_code_hash = base64sha256(filebase64("ddg_metric_submit.zip"))
   environment {
     variables = {
-      DDG_API_KEY = var.ddg_api_key
-      DDG_APP_KEY = var.ddg_app_key
+      DDG_API_KEY = "AQICAHgE3YoB70ZY5KGUaKA0EEuPHoHYQ/8w+t4khDfetH9o6wE64bJvd56fdoJJyIMN3ha0AAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMBZFD+f7OPw9eBfzqAgEQgDszgePhMfSlQb2xCGkP6icwtrqA8fXOzqIdZBG/NDGBeallRtplf4Akzi2e0R4zcM/eTmGaJLFyCMyJXQ=="
+      DDG_APP_KEY = "AQICAHgE3YoB70ZY5KGUaKA0EEuPHoHYQ/8w+t4khDfetH9o6wH2Dp5AYChtZ7ocsTm3SWODAAAAhzCBhAYJKoZIhvcNAQcGoHcwdQIBADBwBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDNPb/l74+uPufO/zQgIBEIBDqAYENKa5SMk/xX6OMzqzzw4AJCNZy/wmJ6eL2/7clNlqEYV+JcZ3SjJ6RuAnAXsKGjAjbamz6hbi1L6ain4SnBeepQ=="
     }
   }
 }
