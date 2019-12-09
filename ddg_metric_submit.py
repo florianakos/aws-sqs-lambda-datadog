@@ -8,13 +8,8 @@ from random import randint
 
 from datadog import initialize as ddg_init
 from datadog import api as dd_api
-from base64 import b64decode
 
 def handler(event, context):
-    DDG_API_KEY = boto3.client('kms').decrypt(CiphertextBlob=b64decode(os.environ['DDG_API_KEY']))['Plaintext']
-    DDG_APP_KEY = boto3.client('kms').decrypt(CiphertextBlob=b64decode(os.environ['DDG_APP_KEY']))['Plaintext']
-    print("API: " + DDG_API_KEY)
-    print("API: " + DDG_APP_KEY)
     # print(json.dumps(event, indent=4, sort_keys=True))
     sqs_msg_body = json.loads(event["Records"][0]["body"])
 
@@ -33,8 +28,8 @@ def handler(event, context):
 
     # print(jsonData)
     # datadog initialization options
-    ddg_options = { 'api_key': DDG_API_KEY,
-                    'app_key': DDG_APP_KEY,
+    ddg_options = { 'api_key': os.environ["DDG_API_KEY"],
+                    'app_key': os.environ["DDG_APP_KEY"],
                     'api_host': 'https://api.datadoghq.eu'}
     # init the local datadog agent
     ddg_init(**ddg_options)
