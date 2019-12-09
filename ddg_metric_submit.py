@@ -8,6 +8,8 @@ from random import randint
 
 from datadog import initialize as ddg_init
 from datadog import api as dd_api
+from base64 import b64decode
+
 
 
 DDG_API_KEY = boto3.client('kms').decrypt(CiphertextBlob=b64decode(os.environ['DDG_API_KEY']))['Plaintext']
