@@ -4,10 +4,21 @@ import gzip
 import boto3
 import os
 import time
+import urllib.parse
 from random import randint
-
 from datadog import initialize as ddg_init
 from datadog import api as dd_api
+
+# validate s3 key based on requirement
+def is_valid(s3_key):
+    parts = s3_key.split('/')
+    for item in parts[0:3]:
+        name = item.split('=')
+        if name[0] not in ['component', 'subComponent', 'date']:
+            print(name[0])
+            return False
+    return True
+
 
 def handler(event, context):
     # print(json.dumps(event, indent=4, sort_keys=True))
@@ -19,7 +30,11 @@ def handler(event, context):
         return
 
     # get the filename from the message body
-    s3_file_name = sqs_msg_body["Records"][0]["s3"]["object"]["key"]
+    s3_file_name = urllib.parse.unquote(sqs_msg_body["Records"][0]["s3"]["object"]["key"])
+
+    if not is_valid(s3_file_name):
+        print("File key invalid, exiting...")
+        return
 
     # fetch the file from S3 that was just uploaded
     s3_client  = boto3.client('s3')
