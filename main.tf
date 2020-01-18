@@ -1,5 +1,9 @@
+variable "region" {
+  default = "eu-central-1"
+}
+
 provider "aws" {
-  region = "eu-central-1" // -> Frankfurt
+  region = var.region #"eu-central-1" // -> Frankfurt
   profile = "personal-aws"
 }
 
@@ -65,7 +69,7 @@ data "aws_iam_policy_document" "sqs_lambda_access" {
   statement {
     sid       = "AllowSQSPermissions"
     effect    = "Allow"
-    resources = ["arn:aws:sqs:eu-central-1:546454927816:gm-monitoring-queue"]
+    resources = ["arn:aws:sqs:${var.region}:546454927816:gm-monitoring-queue"]
     actions = [
       "sqs:DeleteMessage",
       "sqs:GetQueueUrl",
@@ -139,10 +143,10 @@ resource "aws_lambda_permission" "allow_sqs_invoke_lambda" {
 
 resource "aws_sqs_queue" "message_queue" {
   name                      = "gm-monitoring-queue"
-  delay_seconds             = 15
+  delay_seconds             = 0
   max_message_size          = 2048
   message_retention_seconds = 86400
-  receive_wait_time_seconds = 10
+  receive_wait_time_seconds = 0
   tags = {
     Owner = "Flo"
     Project = "DataDog-AWS-Integration"
